@@ -1,4 +1,4 @@
-package internal
+package memory
 
 import (
 	"baize/internal/utils"
@@ -67,18 +67,34 @@ type edacInfo struct {
 	DIMM     string `json:"DIMM ID,omitempty"`
 }
 
-func GetMemory() *MEMORY {
-	ret := new(MEMORY)
+func (m *MEMORY) Result() {
+
 	dmiMem := utils.MemoryDevice.Dmidecode()
-	ret.SlotMax = strconv.Itoa(len(dmiMem))
-	phyMem(ret, dmiMem)
+	m.SlotMax = strconv.Itoa(len(dmiMem))
+	phyMem(m, dmiMem)
 	procMem, err := utils.ReadLines("/proc/meminfo")
 	if err == nil {
-		meminfo(ret, procMem)
+		meminfo(m, procMem)
 	}
-	ret.EdacInfo = edac()
-	memoryDiagnose(ret)
-	return ret
+	m.EdacInfo = edac()
+	memoryDiagnose(m)
+}
+
+func (m *MEMORY) BriefFormat() {
+	fmt.Println("[MEMORY INFO]")
+	selectFields := []string{"PhyMem", "SlotMax", "SlotUsed", "MemTotal", "MemAvailable", "Diagnose", "DiagnoseDetail"}
+	utils.StructSelectFieldOutput(*m, selectFields, 1)
+}
+
+func (m *MEMORY) Format() {
+	fmt.Println("[MEMORY INFO]")
+	selectFields := []string{"PhyMem", "SlotMax", "SlotUsed", "MemTotal", "MemAvailable", "Diagnose", "DiagnoseDetail"}
+	utils.StructSelectFieldOutput(*m, selectFields, 1)
+	phymem := []string{"Locator", "BankLocator", "Manufacturer", "SN", "Size", "MaxSpeed", "RunningSpeed", "TotalWidth", "DataWidth", "Type"}
+	for _, mem := range m.MemEntities {
+		fmt.Println()
+		utils.StructSelectFieldOutput(mem, phymem, 2)
+	}
 }
 
 func phyMem(ret *MEMORY, memSlice []map[string]interface{}) {

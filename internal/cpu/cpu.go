@@ -12,7 +12,7 @@ import (
 type CPU struct {
 	ModelName      string   `json:"Product Name,omitempty"`
 	Vendor         string   `json:"Vendor,omitempty"`
-	Architecture   string   `json:"Artchitrcture,omitempty"`
+	Architecture   string   `json:"Architecture,omitempty"`
 	Hyper          string   `json:"Hyper Threading,omitempty"`
 	Power          string   `json:"Power State,omitempty"`
 	OpMode         string   `json:"CPU op-mode,omitempty"`
@@ -66,17 +66,15 @@ type processor struct {
 
 var run utils.RunSheller = &utils.RunShell{}
 
-func GetCPU() *CPU {
-
-	ret := new(CPU)
+func (c *CPU) Result() {
+	//	ret := new(CPU)
 	lscpuByte, err := run.Command("lscpu")
 	if err != nil {
 		log.Printf("lscpu running failed. %v", err)
 	}
 	lines := strings.Split(string(lscpuByte), "\n")
-	lscpu(ret, lines)
-	dmiCPU(ret)
-	return ret
+	lscpu(c, lines)
+	dmiCPU(c)
 }
 
 func lscpu(ret *CPU, lines []string) {
@@ -201,4 +199,26 @@ func dmiCPU(ret *CPU) {
 
 	ret.MinFreq = fmt.Sprintf("%.2f", freqMap["MinFreq"])
 	ret.MaxFreq = fmt.Sprintf("%.2f", freqMap["MaxFreq"])
+}
+
+func (c *CPU) BriefFormat() {
+	fmt.Println("[CPU INFO]")
+	selectFields := []string{"ModelName", "Vendor", "Power", "Hyper", "MinFreq", "MaxFreq"}
+	utils.StructSelectFieldOutput(*c, selectFields, 1)
+}
+
+func (c *CPU) Format() {
+	fmt.Println("[CPU INFO]")
+	selectFields := []string{"ModelName", "Architecture", "Vendor", "Socket", "CorePerSocket", "ThrPerCore", "Threads", "MaxFreq", "MinFreq", "Power", "Hyper"}
+	phy := []string{"Version", "Manufacturer", "SocketID", "MaxSpeed", "CurSpeed", "Cores", "CoreEnable", "Threads"}
+	sliProc := []string{"Processor", "CoreID", "Temp", "Freq"}
+	utils.StructSelectFieldOutput(*c, selectFields, 1)
+	for _, phycpu := range c.PhyCPU {
+		fmt.Println()
+		utils.StructSelectFieldOutput(phycpu, phy, 2)
+		for _, proc := range phycpu.ProcEntities {
+			fmt.Println()
+			utils.StructSelectFieldOutput(proc, sliProc, 3)
+		}
+	}
 }

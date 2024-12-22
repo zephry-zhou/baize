@@ -11,6 +11,7 @@ import (
 
 type Logger struct {
 	l *slog.Logger
+	f *os.File
 }
 
 func NewStreamLogger(level slog.Level) *Logger {
@@ -38,10 +39,9 @@ func NewStreamLogger(level slog.Level) *Logger {
 func NewFileLogger(level slog.Level, path string) *Logger {
 
 	file, _ := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-
 	h := slog.New(slog.NewJSONHandler(file, &slog.HandlerOptions{
 		AddSource: true,
-		Level:     slog.LevelDebug,
+		Level:     level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			if a.Key == slog.TimeKey {
 				a.Value = slog.StringValue(a.Value.Time().Format("2006-01-02 15:04:05"))
@@ -78,6 +78,10 @@ func (l *Logger) Error(msg string, args ...any) {
 
 func (l *Logger) Log(ctx context.Context, level slog.Level, msg string, args ...any) {
 	l.log(ctx, level, msg, args...)
+}
+
+func (l *Logger) Close() error {
+	return l.f.Close()
 }
 
 func (l *Logger) log(ctx context.Context, level slog.Level, msg string, args ...any) {

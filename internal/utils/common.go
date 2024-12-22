@@ -263,3 +263,34 @@ func FindMinAndMax[T OrderedType](nums []T) (minValue, maxValue T) {
 	}
 	return minValue, maxValue
 }
+
+func StructSelectFieldOutput(v interface{}, selectFields []string, indent int) {
+	separator := strings.Repeat("    ", indent)
+	nums := 40 - indent*4
+	val := reflect.ValueOf(v)
+	key := reflect.TypeOf(v)
+	for _, field := range selectFields {
+		vv := val.FieldByName(field)
+		kk, ok := key.FieldByName(field)
+		if !ok {
+			continue
+		}
+		tag := kk.Tag.Get("json")
+		if IsEmptyValue(vv) {
+			continue
+		}
+		switch vv.Kind() {
+		case reflect.Struct:
+			StructSelectFieldOutput(vv.Interface(), selectFields, indent+1)
+		case reflect.Slice:
+			sLen := vv.Len()
+			for i := 0; i < sLen; i++ {
+				elem := vv.Index(i).Interface()
+				if reflect.TypeOf(elem).Kind() == reflect.Struct {
+					StructSelectFieldOutput(elem, selectFields, indent+1)
+				}
+			}
+		}
+		fmt.Printf("%s%-*s: %v\n", separator, nums, strings.Split(tag, ",")[0], vv.Interface())
+	}
+}

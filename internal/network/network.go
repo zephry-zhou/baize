@@ -1,4 +1,4 @@
-package internal
+package network
 
 import (
 	"baize/internal/utils"
@@ -67,22 +67,45 @@ type slaveIf struct {
 	Aggregator string `json:"Aggregator ID,omitempty"`
 }
 
-func GetNetwork() NETWORK {
-	ret := NETWORK{}
+func (n *NETWORK) Result() {
 	netDIR := "/sys/class/net"
 	dirEntry, err := os.ReadDir(netDIR)
 	if err != nil {
 		log.Printf("The network port directory was not found: %v", err)
-		return ret
+		return
 	}
 	for _, dir := range dirEntry {
 		if dir.Name() == "lo" || dir.Name() == "bonding_masters" {
 			continue
 		}
-		ret.Port = append(ret.Port, parsePort(dir.Name()))
+		n.Port = append(n.Port, parsePort(dir.Name()))
 	}
-	getBond(&ret)
-	return ret
+	getBond(n)
+}
+
+func (n *NETWORK) BriefFormat() {
+	println("[NETWORK INFO]")
+	bondField := []string{"Name", "Mode", "Status", "LACP", "MACAddr", "Speed", "LinkState", "Aggregator", "IPv4"}
+	portField := []string{"PortName", "Status", "MACAddr", "PCIID", "PCIAddr", "Speed", "LinkState", "LinkF", "LLDP"}
+	if utils.IsEmptyValue(reflect.ValueOf(n.Bond)) {
+		for _, port := range n.Port {
+			println()
+			utils.StructSelectFieldOutput(port, portField, 1)
+		}
+	} else {
+		for _, bond := range n.Bond {
+			println()
+			utils.StructSelectFieldOutput(bond, bondField, 1)
+			for _, slave := range bond.Slave {
+				println()
+				utils.StructSelectFieldOutput(slave, portField, 2)
+			}
+		}
+	}
+}
+
+func (n *NETWORK) Format() {
+
 }
 
 func parsePort(port string) netPort {
