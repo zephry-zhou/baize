@@ -97,6 +97,10 @@ func (m *MEMORY) Format() {
 	}
 }
 
+func (m *MEMORY) JsonFormat() {
+
+}
+
 func phyMem(ret *MEMORY, memSlice []map[string]interface{}) {
 	var (
 		totalSize float64

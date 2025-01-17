@@ -30,8 +30,9 @@ type ethPort struct {
 	Port      string `json:"Port Type,omitempty"`
 	Firmware  string `json:"Firmware Version,omitempty"`
 	internal.PCI
-	Ring ringBuffer `json:"Ring Buffer,omitempty"`
-	Chan channel    `json:"Channel,omitempty"`
+	DriverVersion string     `json:"Driver Version,omitempty"`
+	Ring          ringBuffer `json:"Ring Buffer,omitempty"`
+	Chan          channel    `json:"Channel,omitempty"`
 }
 
 func ethtoolPort(port string) *ethPort {
@@ -146,16 +147,14 @@ func ethDriver(ret *ethPort, msgSlice []string) {
 				ret.PCIAddr = value
 			}
 		case "driver":
-			ret.Driver.DriverName = value
+			ret.Driver = value
 		case "version":
-			ret.Driver.DriverVersion = value
+			ret.DriverVersion = value
 		case "firmware-version":
 			ret.Firmware = value
 		}
 	}
-	if ret.PCIAddr == "0000:00:00.0" {
-		ret.Driver = ret.Driver.Driver(ret.Driver.DriverName)
-	} else {
+	if ret.PCIAddr != "0000:00:00.0" {
 		ret.PCI = *internal.GetPCIe(ret.PCIAddr)
 	}
 }

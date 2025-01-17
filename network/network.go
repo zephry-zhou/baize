@@ -87,7 +87,7 @@ func (n *NETWORK) Result() {
 func (n *NETWORK) BriefFormat() {
 	println("[NETWORK INFO]")
 	bondField := []string{"Name", "Mode", "Status", "LACP", "MACAddr", "Speed", "LinkState", "Aggregator", "IPv4"}
-	portField := []string{"PortName", "Status", "MACAddr", "PCIID", "PCIAddr", "Speed", "LinkState", "LinkF", "LLDP"}
+	portField := []string{"Interface", "Status", "MACAddr", "PCIID", "PCIAddr", "Speed", "LinkState", "LinkF", "LLDP"}
 	if internal.IsEmptyValue(reflect.ValueOf(n.Bond)) {
 		for _, port := range n.Port {
 			println()
@@ -109,6 +109,8 @@ func (n *NETWORK) Format() {
 
 }
 
+func (n *NETWORK) JsonFormat() {}
+
 func parsePort(port string) netPort {
 	ret := netPort{}
 	dir := filepath.Join("/sys/class/net", port)
@@ -122,7 +124,7 @@ func parsePort(port string) netPort {
 	for _, sub := range subDir {
 		if sub.Name() == "device" {
 			ret.LLDP = lldpctl(port)
-			if internal.IsEmptyValue(reflect.ValueOf(ret.LLDP)) && ret.Driver.DriverName == "i40e" {
+			if internal.IsEmptyValue(reflect.ValueOf(ret.LLDP)) && ret.Driver == "i40e" {
 				checkI40e(port, &ret)
 				ret.LLDP = lldpctl(port)
 			}

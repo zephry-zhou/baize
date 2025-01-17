@@ -44,7 +44,11 @@ func lscpu(ret *CPU, lines []string) {
 		case "NUMA node(s)", "NUMA node[s]":
 			ret.NUMANode = value
 		case "Vendor ID":
-			ret.Vendor = value
+			if vendor, ok := vendorMap[value]; ok {
+				ret.Vendor = vendor
+			} else {
+				ret.Vendor = value
+			}
 		case "CPU family":
 			ret.Family = value
 		case "Model":
@@ -165,4 +169,8 @@ func (c *CPU) Format() {
 			internal.StructSelectFieldOutput(proc, sliProc, 3)
 		}
 	}
+}
+
+func (c *CPU) JsonFormat() {
+
 }

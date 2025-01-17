@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -86,5 +87,26 @@ func parseRecord(lines []string) (string, map[string]interface{}) {
 	if len(cha) != 0 || len(record2) != 0 {
 		record[cha] = record2
 	}
-	return handle[0][1], record
+	return handle[0][2], record
+}
+
+func format() {
+	for k, v := range dmiCache {
+		fmt.Printf("Handle ID: %s\n", k)
+		for _, v2 := range v {
+			for k1, v3 := range v2 {
+				if v3 == nil {
+					continue
+				}
+				switch v3.(type) {
+				case string:
+					fmt.Printf("%s: %s\n", k1, v3)
+				case []string:
+					for _, v4 := range v3.([]string) {
+						fmt.Printf("%s: %s\n", k1, v4)
+					}
+				}
+			}
+		}
+	}
 }

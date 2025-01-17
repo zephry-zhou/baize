@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	TimeOut    = 20 * time.Second
+	TimeOut    = 120 * time.Second
 	ErrTimeOut = fmt.Errorf("command time out")
 	Run        RunSheller
 	DMI        map[string][]map[string]interface{}
@@ -278,6 +278,10 @@ func StructSelectFieldOutput(v interface{}, selectFields []string, indent int) {
 	nums := 40 - indent*4
 	val := reflect.ValueOf(v)
 	key := reflect.TypeOf(v)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+		key = key.Elem()
+	}
 	for _, field := range selectFields {
 		vv := val.FieldByName(field)
 		kk, ok := key.FieldByName(field)
@@ -290,6 +294,9 @@ func StructSelectFieldOutput(v interface{}, selectFields []string, indent int) {
 		}
 		switch vv.Kind() {
 		case reflect.Struct:
+			StructSelectFieldOutput(vv.Interface(), selectFields, indent+1)
+		case reflect.Ptr:
+			vv = vv.Elem()
 			StructSelectFieldOutput(vv.Interface(), selectFields, indent+1)
 		case reflect.Slice:
 			sLen := vv.Len()

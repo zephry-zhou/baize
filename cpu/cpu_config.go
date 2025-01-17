@@ -62,4 +62,5 @@ type thread struct {
 var vendorMap = map[string]string{
 	"GenuineIntel": "Intel",
 	"AuthenticAMD": "AMD",
+	"0x48":         "HiSilicon",
 }
